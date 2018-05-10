@@ -2,7 +2,6 @@ package hdlc
 
 import (
 	"bytes"
-	"encoding/hex"
 	"fmt"
 	"io"
 
@@ -41,7 +40,7 @@ type Frame struct {
 	dest       *Address
 	src        *Address
 	ctrl       byte
-	info       []byte
+	info       *LogicalLinkLayerPDU
 }
 
 // UnmarshalBinary decodes a HDLC frame from tokenized byte arrays.
@@ -74,7 +73,11 @@ func (f *Frame) UnmarshalBinary(data []byte) error {
 		return fmt.Errorf("Header checksum invalid: %s", err)
 	}
 	if buf.Len() > 0 {
-		f.info = buf.Next(buf.Len() - 2)
+		f.info = &LogicalLinkLayerPDU{}
+		err = f.info.UnmarshalBinary(buf.Next(buf.Len() - 2))
+		if err != nil {
+			return fmt.Errorf("LLC PDU invalid: %s", err)
+		}
 		err = verifyChecksum(buf, crc16.ChecksumCCITT(data[0:n-2]))
 		if err != nil {
 			return fmt.Errorf("Checksum invalid: %s", err)
@@ -133,6 +136,5 @@ func verifyChecksum(data io.ByteReader, expected uint16) error {
 }
 
 func (f *Frame) String() string {
-	return fmt.Sprintf("{dest=%v src=%v ctrl=0x%02x info=%s}",
-		f.dest, f.src, f.ctrl, hex.EncodeToString(f.info))
+	return fmt.Sprintf("{dest=%v src=%v ctrl=0x%02x info=%v}", f.dest, f.src, f.ctrl, f.info)
 }
