@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/jacobsa/go-serial/serial"
+	"svenschwermer.de/ams-han-proxy/han"
 	"svenschwermer.de/ams-han-proxy/hdlc"
 )
 
@@ -33,7 +34,8 @@ func main() {
 		if err := f.UnmarshalBinary(scanner.Bytes()); err != nil {
 			log.Printf("Failed to decode frame: %s", err)
 		} else {
-			log.Print(f)
+			han.DecodeKFM001(f.LogicalLinkLayerPayload())
+			//log.Print(f)
 		}
 	}
 	if err := scanner.Err(); err != nil {

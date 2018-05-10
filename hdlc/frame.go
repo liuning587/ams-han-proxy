@@ -138,3 +138,7 @@ func verifyChecksum(data io.ByteReader, expected uint16) error {
 func (f *Frame) String() string {
 	return fmt.Sprintf("{dest=%v src=%v ctrl=0x%02x info=%v}", f.dest, f.src, f.ctrl, f.info)
 }
+
+func (f *Frame) LogicalLinkLayerPayload() []byte {
+	return f.info.Info
+}
