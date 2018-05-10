@@ -38,8 +38,8 @@ func SplitFrames(data []byte, atEOF bool) (advance int, token []byte, err error)
 type Frame struct {
 	formatType byte
 	length     int
-	dest       []byte
-	src        []byte
+	dest       *Address
+	src        *Address
 	ctrl       byte
 	info       []byte
 }
@@ -102,19 +102,19 @@ func (f *Frame) getFormat(data io.ByteReader) error {
 	return nil
 }
 
-func getAddress(data io.ByteReader) (addr []byte, err error) {
-	for i := 0; i < 4; i++ {
-		var b byte
-		b, err = data.ReadByte()
+func getAddress(data io.ByteReader) (*Address, error) {
+	var rawAddr []byte
+	for {
+		b, err := data.ReadByte()
 		if err != nil {
 			return nil, err
 		}
-		addr = append(addr, b)
+		rawAddr = append(rawAddr, b)
 		if b&0x01 == 0x01 {
-			return
+			addr := &Address{}
+			return addr, addr.UnmarshalBinary(rawAddr)
 		}
 	}
-	return nil, fmt.Errorf("Address end could not be found")
 }
 
 func verifyChecksum(data io.ByteReader, expected uint16) error {
