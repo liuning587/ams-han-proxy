@@ -9,7 +9,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 
-	"svenschwermer.de/ams-han-proxy/config"
+	"svenschwermer.de/ams-han-proxy/client/config"
 	"svenschwermer.de/ams-han-proxy/han"
 	"svenschwermer.de/ams-han-proxy/hdlc"
 )

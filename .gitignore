@@ -1,4 +1,5 @@
-/ams-han-proxy
+/ams-han-proxy-client
+/ams-han-proxy-server
 /vendor
 /.vscode
 /debug
