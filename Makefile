@@ -1,13 +1,17 @@
 client_bin = ams-han-proxy-client
+client_arm_bin = $(client_bin).arm
 server_bin = ams-han-proxy-server
 base_pkg = svenschwermer.de/ams-han-proxy
 proto_electricity = proto/electricity/electricity.pb.go
 
-.PHONY: all client server clean
-all: client server
+.PHONY: all client client-arm server clean
+all: client client-arm server
 
 client: $(proto_electricity)
-	GOOS=linux GOARCH=arm GOARM=6 go build -o $(client_bin) $(base_pkg)/client
+	go build -o $(client_bin) $(base_pkg)/client
+
+client-arm: $(proto_electricity)
+	GOOS=linux GOARCH=arm GOARM=6 go build -o $(client_arm_bin) $(base_pkg)/client
 
 server: $(proto_electricity)
 	GOOS=linux GOARCH=amd64 go build -o $(server_bin) $(base_pkg)/server
