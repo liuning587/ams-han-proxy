@@ -72,33 +72,19 @@ func handleList1(s cosem.Structure, md *api.MeterData) error {
 }
 
 func handleList2(s cosem.Structure, md *api.MeterData) error {
-	strings := []struct {
-		index    int
-		variable *string
-	}{
-		{0, &md.List2.ObisListVersionId},
-		{1, &md.List2.MeterId},
-		{2, &md.List2.MeterType},
+	vars := []func() error{
+		func() error { return getString(s.Item(0), &md.List2.ObisListVersionId) },
+		func() error { return getString(s.Item(1), &md.List2.MeterId) },
+		func() error { return getString(s.Item(2), &md.List2.MeterType) },
+		func() error { return getFloat64(s.Item(3), &md.ActivePowerPlus) },
+		func() error { return getFloat64(s.Item(4), &md.List2.ActivePowerMinus) },
+		func() error { return getFloat64(s.Item(5), &md.List2.ReactivePowerPlus) },
+		func() error { return getFloat64(s.Item(6), &md.List2.ReactivePowerMinus) },
+		func() error { return getFloat64(s.Item(7), &md.List2.PhaseCurrent) },
+		func() error { return getFloat64(s.Item(8), &md.List2.PhaseVoltage) },
 	}
-	for _, v := range strings {
-		if err := getString(s.Item(v.index), v.variable); err != nil {
-			return err
-		}
-	}
-
-	doubles := []struct {
-		index    int
-		variable *float64
-	}{
-		{3, &md.ActivePowerPlus},
-		{4, &md.List2.ActivePowerMinus},
-		{5, &md.List2.ReactivePowerPlus},
-		{6, &md.List2.ReactivePowerMinus},
-		{7, &md.List2.PhaseCurrent},
-		{8, &md.List2.PhaseVoltage},
-	}
-	for _, v := range doubles {
-		if err := getFloat64(s.Item(v.index), v.variable); err != nil {
+	for _, v := range vars {
+		if err := v(); err != nil {
 			return err
 		}
 	}
@@ -109,21 +95,15 @@ func handleList3(s cosem.Structure, md *api.MeterData) error {
 	if err := handleList2(s, md); err != nil {
 		return err
 	}
-	if err := getTime(s.Item(9), &md.List3.MeterTimestamp); err != nil {
-		return err
+	vars := []func() error{
+		func() error { return getTime(s.Item(9), &md.List3.MeterTimestamp) },
+		func() error { return getFloat64(s.Item(10), &md.List3.CumulativeHourlyActiveImportEnergy) },
+		func() error { return getFloat64(s.Item(11), &md.List3.CumulativeHourlyActiveExportEnergy) },
+		func() error { return getFloat64(s.Item(12), &md.List3.CumulativeHourlyReactiveImportEnergy) },
+		func() error { return getFloat64(s.Item(13), &md.List3.CumulativeHourlyReactiveExportEnergy) },
 	}
-
-	doubles := []struct {
-		index    int
-		variable *float64
-	}{
-		{10, &md.List3.CumulativeHourlyActiveImportEnergy},
-		{11, &md.List3.CumulativeHourlyActiveExportEnergy},
-		{12, &md.List3.CumulativeHourlyReactiveImportEnergy},
-		{13, &md.List3.CumulativeHourlyReactiveExportEnergy},
-	}
-	for _, v := range doubles {
-		if err := getFloat64(s.Item(v.index), v.variable); err != nil {
+	for _, v := range vars {
+		if err := v(); err != nil {
 			return err
 		}
 	}
