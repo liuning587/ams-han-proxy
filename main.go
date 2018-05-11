@@ -2,26 +2,26 @@ package main
 
 import (
 	"bufio"
-	"log"
 
 	"github.com/jacobsa/go-serial/serial"
+	"github.com/kelseyhightower/envconfig"
+	log "github.com/sirupsen/logrus"
+
+	"svenschwermer.de/ams-han-proxy/config"
 	"svenschwermer.de/ams-han-proxy/han"
 	"svenschwermer.de/ams-han-proxy/hdlc"
 )
 
 func main() {
-	log.SetFlags(log.Lmicroseconds)
-
-	options := serial.OpenOptions{
-		PortName:        "/dev/ttyUSB0",
-		BaudRate:        2400,
-		DataBits:        8,
-		ParityMode:      serial.PARITY_EVEN,
-		StopBits:        1,
-		MinimumReadSize: 1,
+	cfg := &config.Config{}
+	if err := envconfig.Process("", cfg); err != nil {
+		envconfig.Usage("", cfg)
+		log.Fatal(err)
 	}
 
-	port, err := serial.Open(options)
+	serialOptions := cfg.Serial.GetOpenOptions()
+	serialOptions.MinimumReadSize = 1
+	port, err := serial.Open(serialOptions)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -32,10 +32,9 @@ func main() {
 	for scanner.Scan() {
 		f := &hdlc.Frame{}
 		if err := f.UnmarshalBinary(scanner.Bytes()); err != nil {
-			log.Printf("Failed to decode frame: %s", err)
+			log.Errorf("Failed to decode frame: %s", err)
 		} else {
 			han.DecodeKFM001(f.LogicalLinkLayerPayload())
-			//log.Print(f)
 		}
 	}
 	if err := scanner.Err(); err != nil {

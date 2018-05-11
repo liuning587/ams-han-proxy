@@ -24,3 +24,12 @@ func decodeOctetString(buf *bytes.Buffer) (Data, error) {
 func (os OctetString) String() string {
 	return hex.EncodeToString(os)
 }
+
+func (os OctetString) AsDateTime() (DateTime, error) {
+	buf := bytes.NewBuffer(os)
+	data, err := decodeDateTime(buf)
+	if err == nil {
+		return data.(DateTime), nil
+	}
+	return DateTime{}, err
+}

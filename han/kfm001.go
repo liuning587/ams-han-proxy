@@ -54,10 +54,18 @@ func HandleKFM001List2(s cosem.Structure) error {
 }
 
 func HandleKFM001List3(s cosem.Structure) error {
-	return HandleKFM001List2(s)
+	if err := HandleKFM001List2(s); err != nil {
+		return err
+	}
+	t, err := s.Item(9).(cosem.OctetString).AsDateTime()
+	if err != nil {
+		return err
+	}
+	log.Printf("Meter time: %v", t)
 	// 9: Timestamp = 07e2050a0417000aff800000
 	// 10: Cumulative hourly active import energy (A+) (Q1+Q4) = 1436570
 	// 11: Cumulative hourly active export energy (A-) (Q2+Q3) = 0
 	// 12: Cumulative hourly reactive import energy (R+) (Q1+Q2) = 40936
 	// 13: Cumulative hourly reactive export energy (R-) (Q3+Q4) = 53402
+	return nil
 }

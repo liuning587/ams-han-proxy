@@ -24,6 +24,7 @@ const (
 	choiceLong64Unsigned          = 21 // uint64
 	choiceFloat32                 = 23 // float32
 	choiceFloat64                 = 24 // float64
+	choiceDateTime                = 25 // time.Time
 )
 
 type decodeFunc func(*bytes.Buffer) (Data, error)
@@ -37,6 +38,7 @@ var decodeMapper = map[byte]decodeFunc{
 	choiceLongInteger:        func(buf *bytes.Buffer) (Data, error) { return decodeInteger(buf, 2, true) },
 	choiceUnsigned:           func(buf *bytes.Buffer) (Data, error) { return decodeInteger(buf, 1, false) },
 	choiceLongUnsigned:       func(buf *bytes.Buffer) (Data, error) { return decodeInteger(buf, 2, false) },
+	choiceDateTime:           decodeDateTime,
 }
 
 func init() {
