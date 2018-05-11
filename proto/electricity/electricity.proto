@@ -1,0 +1,41 @@
+syntax = "proto3";
+package electricity;
+import "google/protobuf/timestamp.proto";
+
+service MeterSink {
+    rpc Publish(MeterData) returns (MeterDataReply) {}
+}
+
+message MeterData {
+    google.protobuf.Timestamp host_timestamp = 1;
+    MeterDataHeader header = 2;
+    double active_power_plus = 3;
+    MeterDataList2 list2 = 4;
+    MeterDataList3 list3 = 5;
+}
+
+message MeterDataHeader {
+    int32 x = 1;
+    google.protobuf.Timestamp timestamp = 2;
+}
+
+message MeterDataList2 {
+    string obis_list_version_id = 1;
+	string meter_id = 2;
+	string meter_type = 3;
+	double active_power_minus = 4;
+	double reactive_power_plus = 5;
+	double reactive_power_minus = 6;
+	double phase_current = 7;
+	double phase_voltage = 8;
+}
+
+message MeterDataList3 {
+    google.protobuf.Timestamp meter_timestamp = 1;
+    double cumulative_hourly_active_import_energy = 2;
+    double cumulative_hourly_active_export_energy = 3;
+    double cumulative_hourly_reactive_import_energy = 4;
+    double cumulative_hourly_reactive_export_energy = 5;
+}
+
+message MeterDataReply {}

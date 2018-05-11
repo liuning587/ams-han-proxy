@@ -4,11 +4,24 @@ import (
 	"fmt"
 	"strings"
 
+	"google.golang.org/grpc/credentials"
+
 	"github.com/jacobsa/go-serial/serial"
+	log "github.com/sirupsen/logrus"
+	"google.golang.org/grpc"
 )
 
 type Config struct {
-	Serial Serial
+	LogLevel logLevel `split_words:"true" default:"INFO"`
+	Serial   Serial
+	GRPC     GRPC
+}
+
+type logLevel struct{ log.Level }
+
+func (l *logLevel) Decode(str string) (err error) {
+	l.Level, err = log.ParseLevel(str)
+	return
 }
 
 type Serial struct {
@@ -49,4 +62,22 @@ func (p *parity) Decode(str string) error {
 		return fmt.Errorf("Unknown parity: %s", str)
 	}
 	return nil
+}
+
+type GRPC struct {
+	Address     string `required:"true"`
+	Certificate string
+	PrivateKey  string `split_words:"true"`
+}
+
+func (g *GRPC) GetDialOption() (grpc.DialOption, error) {
+	if g.Certificate == "" && g.PrivateKey == "" {
+		log.Warn("Establishing insecure connection")
+		return grpc.WithInsecure(), nil
+	}
+	creds, err := credentials.NewServerTLSFromFile(g.Certificate, g.PrivateKey)
+	if err != nil {
+		return nil, err
+	}
+	return grpc.WithTransportCredentials(creds), nil
 }
