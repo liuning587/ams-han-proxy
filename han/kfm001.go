@@ -8,6 +8,7 @@ import (
 
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/timestamp"
+	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 
 	"svenschwermer.de/ams-han-proxy/cosem"
@@ -42,7 +43,7 @@ func (h *Handler) DecodeLLCPayload(data []byte) error {
 	if i, ok := t.Item(0).(cosem.Integer); ok {
 		md.Header.X = int32(i)
 	}
-	if err := getTime(t.Item(4), md.Header.Timestamp); err != nil {
+	if err := getTime(t.Item(4), &md.Header.Timestamp); err != nil {
 		return err
 	}
 
@@ -61,6 +62,7 @@ func (h *Handler) DecodeLLCPayload(data []byte) error {
 	if err != nil {
 		return err
 	}
+	log.Debugf("Publishing %+v", *md)
 	_, err = h.sink.Publish(context.Background(), md)
 	return err
 }
@@ -107,7 +109,7 @@ func handleList3(s cosem.Structure, md *api.MeterData) error {
 	if err := handleList2(s, md); err != nil {
 		return err
 	}
-	if err := getTime(s.Item(9), md.List3.MeterTimestamp); err != nil {
+	if err := getTime(s.Item(9), &md.List3.MeterTimestamp); err != nil {
 		return err
 	}
 
@@ -146,7 +148,7 @@ func getString(src cosem.Data, dest *string) error {
 	return nil
 }
 
-func getTime(src cosem.Data, dest *timestamp.Timestamp) error {
+func getTime(src cosem.Data, dest **timestamp.Timestamp) error {
 	os, ok := src.(cosem.OctetString)
 	if !ok {
 		return fmt.Errorf("Item is no octet string (for conversion to timestamp), but %T", src)
@@ -155,6 +157,6 @@ func getTime(src cosem.Data, dest *timestamp.Timestamp) error {
 	if err != nil {
 		return err
 	}
-	dest, err = ptypes.TimestampProto(time.Time(t))
+	*dest, err = ptypes.TimestampProto(time.Time(t))
 	return err
 }

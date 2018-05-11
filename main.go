@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"os"
 
 	"github.com/jacobsa/go-serial/serial"
 	"github.com/kelseyhightower/envconfig"
@@ -22,8 +23,13 @@ func init() {
 
 func main() {
 	cfg := &config.Config{}
+	for _, a := range os.Args {
+		if a == "-h" || a == "--help" {
+			envconfig.Usage("", cfg)
+			os.Exit(0)
+		}
+	}
 	if err := envconfig.Process("", cfg); err != nil {
-		envconfig.Usage("", cfg)
 		log.Fatal(err)
 	}
 
