@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/golang/protobuf/ptypes"
-
 	influx "github.com/influxdata/influxdb/client/v2"
 
 	api "svenschwermer.de/ams-han-proxy/proto/electricity"
@@ -31,6 +30,7 @@ func (h *Handler) Publish(ctx context.Context, req *api.MeterData) (*api.MeterDa
 		Precision: "ms",
 		Database:  h.database,
 	})
+	// TODO: Properly wrap errors
 	t, err := ptypes.Timestamp(req.HostTimestamp)
 	if err != nil {
 		return nil, err
@@ -50,6 +50,6 @@ func (h *Handler) Publish(ctx context.Context, req *api.MeterData) (*api.MeterDa
 func getFields(req *api.MeterData) map[string]interface{} {
 	f := make(map[string]interface{})
 	f["active-power-plus"] = req.GetActivePowerPlus()
-	// TODO
+	// TODO: add other fields
 	return f
 }

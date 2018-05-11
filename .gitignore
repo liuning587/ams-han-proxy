@@ -5,3 +5,5 @@
 /.vscode
 /debug
 *.pb.go
+/certs/*.crt
+/certs/*.key

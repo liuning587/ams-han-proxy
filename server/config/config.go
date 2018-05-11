@@ -37,7 +37,7 @@ func (g *GRPC) GetCredentials() (credentials.TransportCredentials, error) {
 	}
 	cert, err := tls.LoadX509KeyPair(g.Certificate, g.PrivateKey)
 	if err != nil {
-		return nil, err
+		return nil, err // TODO: give additional info
 	}
 	tlsConfig := &tls.Config{
 		Certificates: []tls.Certificate{cert},
@@ -47,7 +47,7 @@ func (g *GRPC) GetCredentials() (credentials.TransportCredentials, error) {
 	for _, c := range g.ClientCA {
 		bytes, err := ioutil.ReadFile(c)
 		if err != nil {
-			return nil, err
+			return nil, err // TODO: give additional info
 		}
 		tlsConfig.ClientCAs.AppendCertsFromPEM(bytes)
 	}

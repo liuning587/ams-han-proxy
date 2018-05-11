@@ -32,7 +32,12 @@ func main() {
 		log.Fatal(err)
 	}
 	server := grpc.NewServer(grpc.Creds(creds))
-	api.RegisterMeterSinkServer(server, &electricity.Handler{})
+
+	handler, err := electricity.NewHandler(cfg.Influx.GetHTTPConfig(), cfg.Influx.Database)
+	if err != nil {
+		log.Fatal(err)
+	}
+	api.RegisterMeterSinkServer(server, handler)
 
 	listener, err := net.Listen("tcp", cfg.GRPC.ListenAddress)
 	if err != nil {
