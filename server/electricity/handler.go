@@ -3,8 +3,11 @@ package electricity
 import (
 	"context"
 
+	"google.golang.org/grpc/codes"
+
 	"github.com/golang/protobuf/ptypes"
 	influx "github.com/influxdata/influxdb/client/v2"
+	"google.golang.org/grpc/status"
 
 	api "svenschwermer.de/ams-han-proxy/proto/electricity"
 )
@@ -30,19 +33,18 @@ func (h *Handler) Publish(ctx context.Context, req *api.MeterData) (*api.MeterDa
 		Precision: "ms",
 		Database:  h.database,
 	})
-	// TODO: Properly wrap errors
 	t, err := ptypes.Timestamp(req.HostTimestamp)
 	if err != nil {
-		return nil, err
+		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 	p, err := influx.NewPoint("electricity-meter", nil, getFields(req), t)
 	if err != nil {
-		return nil, err
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 	bp.AddPoint(p)
 	err = h.influxClient.Write(bp)
 	if err != nil {
-		return nil, err
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 	return &api.MeterDataReply{}, nil
 }
