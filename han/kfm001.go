@@ -51,10 +51,8 @@ func (h *Handler) DecodeLLCPayload(data []byte) error {
 	case 1:
 		err = handleList1(s, md)
 	case 9:
-		md.List2 = &api.MeterDataList2{}
 		err = handleList2(s, md)
 	case 14:
-		md.List3 = &api.MeterDataList3{}
 		err = handleList3(s, md)
 	default:
 		err = fmt.Errorf("Unexpected structure in telegram (%v): %v", t, s)
@@ -72,6 +70,7 @@ func handleList1(s cosem.Structure, md *api.MeterData) error {
 }
 
 func handleList2(s cosem.Structure, md *api.MeterData) error {
+	md.List2 = &api.MeterDataList2{}
 	vars := []func() error{
 		func() error { return getString(s.Item(0), &md.List2.ObisListVersionId) },
 		func() error { return getString(s.Item(1), &md.List2.MeterId) },
@@ -92,6 +91,7 @@ func handleList2(s cosem.Structure, md *api.MeterData) error {
 }
 
 func handleList3(s cosem.Structure, md *api.MeterData) error {
+	md.List3 = &api.MeterDataList3{}
 	if err := handleList2(s, md); err != nil {
 		return err
 	}
