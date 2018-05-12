@@ -68,7 +68,7 @@ func (h *Handler) DecodeLLCPayload(data []byte) error {
 }
 
 func handleList1(s cosem.Structure, md *api.MeterData) error {
-	return getFloat64(s.Item(0), &md.ActivePowerPlus)
+	return getFloat64(s.Item(0), &md.ActivePowerPlus, 1)
 }
 
 func handleList2(s cosem.Structure, md *api.MeterData) error {
@@ -76,12 +76,12 @@ func handleList2(s cosem.Structure, md *api.MeterData) error {
 		func() error { return getString(s.Item(0), &md.List2.ObisListVersionId) },
 		func() error { return getString(s.Item(1), &md.List2.MeterId) },
 		func() error { return getString(s.Item(2), &md.List2.MeterType) },
-		func() error { return getFloat64(s.Item(3), &md.ActivePowerPlus) },
-		func() error { return getFloat64(s.Item(4), &md.List2.ActivePowerMinus) },
-		func() error { return getFloat64(s.Item(5), &md.List2.ReactivePowerPlus) },
-		func() error { return getFloat64(s.Item(6), &md.List2.ReactivePowerMinus) },
-		func() error { return getFloat64(s.Item(7), &md.List2.PhaseCurrent) },
-		func() error { return getFloat64(s.Item(8), &md.List2.PhaseVoltage) },
+		func() error { return getFloat64(s.Item(3), &md.ActivePowerPlus, 1) },
+		func() error { return getFloat64(s.Item(4), &md.List2.ActivePowerMinus, 1) },
+		func() error { return getFloat64(s.Item(5), &md.List2.ReactivePowerPlus, 1) },
+		func() error { return getFloat64(s.Item(6), &md.List2.ReactivePowerMinus, 1) },
+		func() error { return getFloat64(s.Item(7), &md.List2.PhaseCurrent, 0.001) },
+		func() error { return getFloat64(s.Item(8), &md.List2.PhaseVoltage, 0.1) },
 	}
 	for _, v := range vars {
 		if err := v(); err != nil {
@@ -97,10 +97,10 @@ func handleList3(s cosem.Structure, md *api.MeterData) error {
 	}
 	vars := []func() error{
 		func() error { return getTime(s.Item(9), &md.List3.MeterTimestamp) },
-		func() error { return getFloat64(s.Item(10), &md.List3.CumulativeHourlyActiveImportEnergy) },
-		func() error { return getFloat64(s.Item(11), &md.List3.CumulativeHourlyActiveExportEnergy) },
-		func() error { return getFloat64(s.Item(12), &md.List3.CumulativeHourlyReactiveImportEnergy) },
-		func() error { return getFloat64(s.Item(13), &md.List3.CumulativeHourlyReactiveExportEnergy) },
+		func() error { return getFloat64(s.Item(10), &md.List3.CumulativeHourlyActiveImportEnergy, 1) },
+		func() error { return getFloat64(s.Item(11), &md.List3.CumulativeHourlyActiveExportEnergy, 1) },
+		func() error { return getFloat64(s.Item(12), &md.List3.CumulativeHourlyReactiveImportEnergy, 1) },
+		func() error { return getFloat64(s.Item(13), &md.List3.CumulativeHourlyReactiveExportEnergy, 1) },
 	}
 	for _, v := range vars {
 		if err := v(); err != nil {
@@ -110,12 +110,12 @@ func handleList3(s cosem.Structure, md *api.MeterData) error {
 	return nil
 }
 
-func getFloat64(src cosem.Data, dest *float64) error {
+func getFloat64(src cosem.Data, dest *float64, factor float64) error {
 	i, ok := src.(cosem.Integer)
 	if !ok {
 		return fmt.Errorf("Item is no integer, but %T", src)
 	}
-	*dest = float64(i)
+	*dest = float64(i) * factor
 	return nil
 }
 
