@@ -1,0 +1,4 @@
+SERIAL_DEVICE=/dev/ttyS0
+GRPC_ADDRESS=svenschwermer.de:8081
+GRPC_CERTIFICATE=/etc/ams-han-proxy-client/ams-han-rpi.crt
+GRPC_PRIVATE_KEY=/etc/ams-han-proxy-client/ams-han-rpi.key

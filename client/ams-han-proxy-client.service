@@ -1,0 +1,11 @@
+[Unit]
+Description=Smart meter data to gRPC proxy
+After=network.target
+
+[Service]
+EnvironmentFile=/etc/ams-han-proxy-client/env
+ExecStart=/usr/local/bin/ams-han-proxy-client.arm
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
