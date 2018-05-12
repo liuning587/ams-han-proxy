@@ -50,6 +50,18 @@ func (h *Handler) Publish(ctx context.Context, req *api.MeterData) (*api.MeterDa
 func getFields(req *api.MeterData) map[string]interface{} {
 	f := make(map[string]interface{})
 	f["active-power-plus"] = req.GetActivePowerPlus()
-	// TODO: add other fields
+	if l2 := req.GetList2(); l2 != nil {
+		f["active-power-minus"] = l2.GetActivePowerMinus()
+		f["reactive-power-plus"] = l2.GetReactivePowerPlus()
+		f["reactive-power-minus"] = l2.GetReactivePowerMinus()
+		f["phase-current"] = l2.GetPhaseCurrent()
+		f["phase-voltage"] = l2.GetPhaseVoltage()
+	}
+	if l3 := req.GetList3(); l3 != nil {
+		f["cumulative-hourly-active-import-energy"] = l3.GetCumulativeHourlyActiveImportEnergy()
+		f["cumulative-hourly-active-export-energy"] = l3.GetCumulativeHourlyActiveExportEnergy()
+		f["cumulative-hourly-reactive-import-energy"] = l3.GetCumulativeHourlyReactiveImportEnergy()
+		f["cumulative-hourly-reactive-export-energy"] = l3.GetCumulativeHourlyReactiveExportEnergy()
+	}
 	return f
 }
