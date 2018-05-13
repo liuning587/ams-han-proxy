@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"encoding/hex"
 	"os"
 
 	"github.com/jacobsa/go-serial/serial"
@@ -59,10 +60,11 @@ func main() {
 		f := &hdlc.Frame{}
 		if err := f.UnmarshalBinary(scanner.Bytes()); err != nil {
 			log.Errorf("Failed to decode HDLC frame: %s", err)
+			log.Errorf("Frame: %s", hex.EncodeToString(scanner.Bytes()))
 		} else {
 			err = hanHandler.DecodeLLCPayload(f.LogicalLinkLayerPayload())
 			if err != nil {
-				log.Warn(err)
+				log.Errorf("Failed to decode payload (%+v): %s", f, err)
 			}
 		}
 	}
