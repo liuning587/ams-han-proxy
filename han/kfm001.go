@@ -1,39 +1,28 @@
 package han
 
 import (
-	"context"
 	"encoding/hex"
 	"fmt"
 	"time"
 
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/timestamp"
-	log "github.com/sirupsen/logrus"
-	"google.golang.org/grpc"
 
 	"svenschwermer.de/ams-han-proxy/cosem"
 	api "svenschwermer.de/ams-han-proxy/proto/electricity"
 )
 
-type Handler struct {
-	sink api.MeterSinkClient
-}
-
-func NewHandler(cc *grpc.ClientConn) *Handler {
-	return &Handler{sink: api.NewMeterSinkClient(cc)}
-}
-
-func (h *Handler) DecodeLLCPayload(data []byte) error {
+func DecodeLLCPayload(data []byte) (*api.MeterData, error) {
 	t, err := cosem.DecodeTelegram(data)
 	if err != nil {
-		return fmt.Errorf("Failed to decode telegram (%s): %s", hex.EncodeToString(data), err)
+		return nil, fmt.Errorf("Failed to decode telegram (%s): %s", hex.EncodeToString(data), err)
 	}
 	if t.NumItems() != 6 {
-		return fmt.Errorf("Expected 6 items, got %d: %v", t.NumItems(), t)
+		return nil, fmt.Errorf("Expected 6 items, got %d: %v", t.NumItems(), t)
 	}
 	s, ok := t.Item(5).(cosem.Structure)
 	if !ok {
-		return fmt.Errorf("Expected structure, got %T (Telegram: %v)", t.Item(5), t)
+		return nil, fmt.Errorf("Expected structure, got %T (Telegram: %v)", t.Item(5), t)
 	}
 
 	md := &api.MeterData{
@@ -44,7 +33,7 @@ func (h *Handler) DecodeLLCPayload(data []byte) error {
 		md.Header.X = int32(i)
 	}
 	if err := getTime(t.Item(4), &md.Header.Timestamp); err != nil {
-		return err
+		return nil, err
 	}
 
 	switch s.NumItems() {
@@ -57,12 +46,7 @@ func (h *Handler) DecodeLLCPayload(data []byte) error {
 	default:
 		err = fmt.Errorf("Unexpected structure in telegram (%v): %v", t, s)
 	}
-	if err != nil {
-		return err
-	}
-	log.Debugf("Publishing %+v", *md)
-	_, err = h.sink.Publish(context.Background(), md)
-	return err
+	return md, err
 }
 
 func handleList1(s cosem.Structure, md *api.MeterData) error {

@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"context"
 	"encoding/hex"
 	"os"
 
@@ -13,6 +14,7 @@ import (
 	"svenschwermer.de/ams-han-proxy/client/config"
 	"svenschwermer.de/ams-han-proxy/han"
 	"svenschwermer.de/ams-han-proxy/hdlc"
+	api "svenschwermer.de/ams-han-proxy/proto/electricity"
 )
 
 func init() {
@@ -52,19 +54,26 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	hanHandler := han.NewHandler(cc)
+	sink := api.NewMeterSinkClient(cc)
 
 	scanner := bufio.NewScanner(port)
 	scanner.Split(hdlc.SplitFrames)
 	for scanner.Scan() {
 		f := &hdlc.Frame{}
 		if err := f.UnmarshalBinary(scanner.Bytes()); err != nil {
-			log.Errorf("Failed to decode HDLC frame: %s", err)
-			log.Errorf("Frame: %s", hex.EncodeToString(scanner.Bytes()))
+			log.Errorf("Failed to decode HDLC frame (%s): %s",
+				hex.EncodeToString(scanner.Bytes()), err)
 		} else {
-			err = hanHandler.DecodeLLCPayload(f.LogicalLinkLayerPayload())
+			md, err := han.DecodeLLCPayload(f.LogicalLinkLayerPayload())
 			if err != nil {
-				log.Errorf("Failed to decode payload (%+v): %s", f, err)
+				log.Errorf("Failed to decode LLC payload (%s): %s",
+					hex.EncodeToString(f.LogicalLinkLayerPayload()), err)
+			} else {
+				log.Debugf("Publishing %+v", *md)
+				_, err = sink.Publish(context.Background(), md)
+				if err != nil {
+					log.Errorf("Failed to publish meter data (%+v): %s", *md, err)
+				}
 			}
 		}
 	}
