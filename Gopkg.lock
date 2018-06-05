@@ -2,6 +2,12 @@
 
 
 [[projects]]
+  name = "github.com/coreos/go-systemd"
+  packages = ["journal"]
+  revision = "39ca1b05acc7ad1220e09f133283b8859a8b71ab"
+  version = "v17"
+
+[[projects]]
   name = "github.com/golang/protobuf"
   packages = [
     "proto",
@@ -56,6 +62,12 @@
   packages = ["."]
   revision = "c155da19408a8799da419ed3eeb0cb5db0ad5dbc"
   version = "v1.0.5"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/wercker/journalhook"
+  packages = ["."]
+  revision = "5d0a5ae867b354cbbbd2a9ab8d66b4f96cfaa741"
 
 [[projects]]
   branch = "master"
@@ -147,6 +159,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "670948516fcc027143f4cc444a2983999880c149f22922d62e6f7888333967e1"
+  inputs-digest = "bc76da16c82e70633cd289d6796a3d5857f9874bf75100552e7b68aa8c41e8aa"
   solver-name = "gps-cdcl"
   solver-version = 1

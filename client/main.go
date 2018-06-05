@@ -11,6 +11,7 @@ import (
 	"github.com/jacobsa/go-serial/serial"
 	"github.com/kelseyhightower/envconfig"
 	log "github.com/sirupsen/logrus"
+	"github.com/wercker/journalhook"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 
@@ -28,6 +29,7 @@ func init() {
 }
 
 func main() {
+	journalhook.Enable()
 	cfg := &config.Config{}
 	for _, a := range os.Args {
 		if a == "-h" || a == "--help" {
