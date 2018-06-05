@@ -14,6 +14,16 @@
   version = "v1.1.0"
 
 [[projects]]
+  name = "github.com/grpc-ecosystem/go-grpc-middleware"
+  packages = [
+    "retry",
+    "util/backoffutils",
+    "util/metautils"
+  ]
+  revision = "c250d6563d4d4c20252cd865923440e829844f4e"
+  version = "v1.0.0"
+
+[[projects]]
   branch = "master"
   name = "github.com/howeyc/crc16"
   packages = ["."]
@@ -137,6 +147,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "570460ffccfcf71d75967db8ab3226d9fb4069dc519bc1836be21b0c7aa4c619"
+  inputs-digest = "670948516fcc027143f4cc444a2983999880c149f22922d62e6f7888333967e1"
   solver-name = "gps-cdcl"
   solver-version = 1

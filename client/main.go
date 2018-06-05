@@ -5,11 +5,14 @@ import (
 	"context"
 	"encoding/hex"
 	"os"
+	"time"
 
+	"github.com/grpc-ecosystem/go-grpc-middleware/retry"
 	"github.com/jacobsa/go-serial/serial"
 	"github.com/kelseyhightower/envconfig"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 
 	"svenschwermer.de/ams-han-proxy/client/config"
 	"svenschwermer.de/ams-han-proxy/han"
@@ -50,11 +53,30 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	cc, err := grpc.Dial(cfg.GRPC.Address, dialOption)
+	cc, err := grpc.Dial(cfg.GRPC.Address, dialOption,
+		grpc.WithUnaryInterceptor(grpc_retry.UnaryClientInterceptor(
+			grpc_retry.WithMax(5),
+			grpc_retry.WithPerRetryTimeout(3*time.Second),
+			grpc_retry.WithCodes(append(grpc_retry.DefaultRetriableCodes, codes.Internal)...),
+		)))
 	if err != nil {
 		log.Fatal(err)
 	}
 	sink := api.NewMeterSinkClient(cc)
+
+	publishJobs := make(chan *api.MeterData)
+	defer close(publishJobs)
+	for i := 0; i < 20; i++ {
+		go func() {
+			for md := range publishJobs {
+				log.Debugf("Publishing %+v", *md)
+				_, err = sink.Publish(context.Background(), md)
+				if err != nil {
+					log.Errorf("Failed to publish meter data (%+v): %s", *md, err)
+				}
+			}
+		}()
+	}
 
 	scanner := bufio.NewScanner(port)
 	scanner.Split(hdlc.SplitFrames)
@@ -69,11 +91,7 @@ func main() {
 				log.Errorf("Failed to decode LLC payload (%s): %s",
 					hex.EncodeToString(f.LogicalLinkLayerPayload()), err)
 			} else {
-				log.Debugf("Publishing %+v", *md)
-				_, err = sink.Publish(context.Background(), md)
-				if err != nil {
-					log.Errorf("Failed to publish meter data (%+v): %s", *md, err)
-				}
+				publishJobs <- md
 			}
 		}
 	}
